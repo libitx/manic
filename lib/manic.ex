@@ -41,13 +41,13 @@ defmodule Manic do
   Merchant API endpoint.
 
       iex> miner = Manic.miner "https://merchantapi.taal.com"
-      %Tasla.Client{}
+      %Tesla.Client{}
 
   A client can aslo be initialized using any of the keys from the list of
   `known_miners/0`. Additional headers can also be specified if necessary.
 
       iex> miner = Manic.miner :mempool, headers: [{"token", token}]
-      %Tasla.Client{}
+      %Tesla.Client{}
 
   ### 2. Get and calculate fees
 

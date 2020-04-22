@@ -42,14 +42,14 @@ Initialize a miner client with the full URL of the Merchant API endpoint.
 
 ```elixir
 iex> miner = Manic.miner "https://merchantapi.taal.com"
-%Tasla.Client{}
+%Tesla.Client{}
 ```
 
 A client can aslo be initialized using any of the keys from a list of known miners. Additional headers can also be specified if necessary.
 
 ```elixir
 iex> miner = Manic.miner :mempool, headers: [{"token", token}]
-%Tasla.Client{}
+%Tesla.Client{}
 ```
 
 ### 2. Get and calculate fees
