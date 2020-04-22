@@ -1,6 +1,6 @@
 defmodule Manic.Fees do
   @moduledoc """
-  Querying dynamic fee rates from Bitcoin miners, and calculate accurate
+  Query dynamic fee rates from Bitcoin miners, and calculate accurate
   transaction fees.
 
   Miners are moving to a model where they will fix their fees in Fiat terms. In
@@ -60,7 +60,7 @@ defmodule Manic.Fees do
   values are:
 
   * `:fees` - The structured [`fee quote`](`t:fee_quote/0`) data **(Default)**
-  * `:payload` - The decoded JSON payload
+  * `:payload` - The decoded JSON [`payload`](`t:Manic.JSONEnvelope.payload/0`)
   * `:envelope` - The raw [`JSON envolope`](`t:Manic.JSONEnvelope.t/0`)
 
   ## Examples

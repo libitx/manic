@@ -34,7 +34,7 @@ defmodule Manic.TX do
   The `:as` option can be used to speficy how to recieve the fees. The accepted
   values are:
 
-  * `:payload` - The decoded JSON payload **(Default)**
+  * `:payload` - The decoded JSON [`payload`](`t:Manic.JSONEnvelope.payload/0`) **(Default)**
   * `:envelope` - The raw [`JSON envolope`](`t:Manic.JSONEnvelope.t/0`)
 
   ## Examples
@@ -120,7 +120,7 @@ defmodule Manic.TX do
   The `:as` option can be used to speficy how to recieve the fees. The accepted
   values are:
 
-  * `:payload` - The decoded JSON payload **(Default)**
+  * `:payload` - The decoded JSON [`payload`](`t:Manic.JSONEnvelope.payload/0`) **(Default)**
   * `:envelope` - The raw [`JSON envolope`](`t:Manic.JSONEnvelope.t/0`)
 
   ## Examples

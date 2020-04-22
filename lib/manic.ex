@@ -85,7 +85,7 @@ defmodule Manic do
         "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
       }}
 
-  Any transaction's status can be queried by its `txid`.
+  Any transaction's status can be queried by its [`txid`](`t:Manic.TX.txid/0`).
 
       iex> Manic.TX.status(miner, "e4763d71925c2ac11a4de0b971164b099dbdb67221f03756fc79708d53b8800e")
       {:ok, %{
@@ -146,7 +146,7 @@ defmodule Manic do
 
   ## Examples
 
-  A `t:miner/0` client can be instantiated with a full URL.
+  A [`miner`](`t:miner/0`) client can be instantiated with a full URL.
 
       iex> Manic.miner "https://merchantapi.taal.com"
       %Tesla.Client{}
