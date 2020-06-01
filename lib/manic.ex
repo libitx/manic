@@ -1,5 +1,11 @@
 defmodule Manic do
   @moduledoc """
+  ![Manic is an Elixir client for interfacing with Bitcoin miner APIs.](https://github.com/libitx/manic/raw/master/media/poster.png)
+
+  ![Hex.pm](https://img.shields.io/hexpm/v/manic?color=informational)
+  ![GitHub](https://img.shields.io/github/license/libitx/manic?color=informational)
+
+
   Manic is an Elixir client for interfacing with Bitcoin miner APIs.
 
   Manic is a port of [unwriter's](https://twitter.com/_unwriter)

@@ -7,7 +7,7 @@ defmodule Manic.JSONEnvelope do
 
   Most manic functions return just the parsed payload, but behind the scenes
   the signature is automatically verified against the payload and an error is
-  returned if verification fails. 
+  returned if verification fails.
   """
 
   # JSONEnvelope
@@ -79,7 +79,7 @@ defmodule Manic.JSONEnvelope do
       }
 
   Example payload from querying a transaction's status:
-  
+
       %{
         "api_version" => String.t,
         "block_hash" => String.t,
@@ -139,6 +139,8 @@ defmodule Manic.JSONEnvelope do
     else
       {:error, error} ->
         {:error, error}
+      :error ->
+        {:error, "Payload signature verification failed."}
       false ->
         {:error, "Payload signature verification failed."}
     end
@@ -168,5 +170,5 @@ defmodule Manic.JSONEnvelope do
         {:error, error}
     end
   end
-  
+
 end

@@ -1,5 +1,10 @@
 # Manic
 
+![Manic is an Elixir client for interfacing with Bitcoin miner APIs.](https://github.com/libitx/manic/raw/master/media/poster.png)
+
+![Hex.pm](https://img.shields.io/hexpm/v/manic?color=informational)
+![GitHub](https://img.shields.io/github/license/libitx/manic?color=informational)
+
 Manic is an Elixir client for interfacing with Bitcoin miner APIs.
 
 Manic is a port of [unwriter's](https://twitter.com/_unwriter) [Minercraft](https://minercraft.network) library for JavaScript. Like Minercraft, Manic supports the [beta version of the Merchant API](https://bitcoinsv.io/2020/04/03/miner-id-and-merchant-api-beta-release/), and its name is a nod to another classic computer game.
