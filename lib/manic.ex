@@ -3,8 +3,9 @@ defmodule Manic do
   Manic is an Elixir client for interfacing with Bitcoin miner APIs.
 
   Manic is a port of [unwriter's](https://twitter.com/_unwriter)
-  [Minercraft](https://minercraft.network) library for JavaScript. Like
-  Minercraft, Manic supports the [beta version of the Merchant API](https://bitcoinsv.io/2020/04/03/miner-id-and-merchant-api-beta-release/),
+  [Minercraft](https://minercraft.network) library for JavaScript, with some
+  added Elixir goodies. Like Minercraft, Manic supports the
+  [beta version of the Merchant API](https://bitcoinsv.io/2020/04/03/miner-id-and-merchant-api-beta-release/),
   and its name is a nod to another classic computer game.
 
   ## Features
@@ -41,13 +42,13 @@ defmodule Manic do
   Merchant API endpoint.
 
       iex> miner = Manic.miner "https://merchantapi.taal.com"
-      %Tesla.Client{}
+      %Manic.Miner{}
 
   A client can aslo be initialized using any of the keys from the list of
   `known_miners/0`. Additional headers can also be specified if necessary.
 
       iex> miner = Manic.miner :mempool, headers: [{"token", token}]
-      %Tesla.Client{}
+      %Manic.Miner{}
 
   ### 2. Get and calculate fees
 
@@ -99,18 +100,81 @@ defmodule Manic do
         "timestamp" => "2020-04-20T21:45:38.808Z",
         "tx_second_mempool_expiry" => 0
       }}
+
+  ## Multi miners
+
+  In the examples above, each API function is invoked by passing a single
+  [`miner`](`t:miner/0`) client. Manic also provides a way of interacting with
+  multiple miner clients concurrently, and yielding the response from any or all
+  of the miners.
+
+  ### 1. Initalize a multi-miner client
+
+  Initialize a [`multi miner`](`t:multi_miner/0`) client with a list of miner
+  Merchant API endpoint details. The list can contain either a full URL, a key
+  from the list of `known_miners/0`, or a tuple pair containing any additional
+  options.
+
+      iex> Manic.multi([
+      ...>   "https://merchantapi.taal.com",
+      ...>   :matterpool,
+      ...>   {:mempool, headers: [{"token", token}]}
+      ...> ])
+      %Manic.Multi{}
+
+  ### 2. Push a tx an any miner
+
+  By default, multi miner requests will yield until **any** of the miners
+  responds. This is allows a transaction to be pushed to multiple miners
+  concurrently, and return a response when the first response is recieved.
+
+      iex> Manic.multi(miners)
+      ...> |> Manic.TX.push(tx)
+      {^miner, {:ok, %{
+        "api_version" => "0.1.0",
+        "current_highest_block_hash" => "00000000000000000397a5a37c1f9b409b4b58e76fd6bcac06db1a3004cccb38",
+        "current_highest_block_height" => 631603,
+        "miner_id" => "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
+        "result_description" => "",
+        "return_result" => "success",
+        "timestamp" => "2020-04-21T14:04:39.563Z",
+        "tx_second_mempool_expiry" => 0,
+        "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
+      }}}
+
+  ### 3. Query all miners concurrently
+
+  Alternatively, a [`multi miner`](`t:multi_miner/0`) client can be initialized
+  with the option `yield: :all` which awaits **all** miner clients to respond
+  before returning the list of responses. This allows us to compare fees from
+  multiple miners concurrently.
+
+      iex> Manic.multi(miners, yield: :all)
+      ...> |> Manic.Fees.get
+      [
+        {^miner, {:ok, %{
+          expires: ~U[2020-04-20 16:35:03.168Z],
+          mine: %{data: 0.5, standard: 0.5},
+          relay: %{data: 0.25, standard: 0.25}
+        }}},
+        {^miner, {:ok, %{
+          expires: ~U[2020-04-20 16:35:03.168Z],
+          mine: %{data: 0.5, standard: 0.5},
+          relay: %{data: 0.25, standard: 0.25}
+        }}},
+        {^miner, {:ok, %{
+          expires: ~U[2020-04-20 16:35:03.168Z],
+          mine: %{data: 0.5, standard: 0.5},
+          relay: %{data: 0.25, standard: 0.25}
+        }}}
+      ]
   """
 
   @typedoc "Bitcoin miner API client"
-  @type miner :: Tesla.Client.t
+  @type miner :: Manic.Miner.t
 
-
-  # Hard coded list of known miners
-  @miners %{
-    matterpool: "https://merchantapi.matterpool.io",
-    mempool: "https://www.ddpurse.com/openapi",
-    taal: "https://merchantapi.taal.com"
-  }
+  @typedoc "Bitcoin multi miner API client"
+  @type multi_miner :: Manic.Multi.t
 
 
   @doc """
@@ -129,7 +193,7 @@ defmodule Manic do
       }
   """
   @spec known_miners() :: map
-  def known_miners, do: @miners
+  def known_miners, do: Manic.Miner.known_miners()
 
 
   @doc """
@@ -149,39 +213,40 @@ defmodule Manic do
   A [`miner`](`t:miner/0`) client can be instantiated with a full URL.
 
       iex> Manic.miner "https://merchantapi.taal.com"
-      %Tesla.Client{}
+      %Manic.Miner{}
 
   Instantiating a known miner with additional headers.
 
       iex> Manic.miner :mempool, headers: [{"token", auth_token}]
-      %Tesla.Client{}
+      %Manic.Miner{}
   """
-  @spec miner(String.t | atom, keyword) :: __MODULE__.miner
-  def miner(url, options \\ [])
-
-  def miner(key, options) when is_atom(key) do
-    case @miners[key] do
-      nil -> raise  "Unknown miner `#{inspect key}`. Please specify URL endpoint."
-      url -> miner(url, options)
-    end
-  end
-
-  def miner(url, options) when is_binary(url) do
-    headers = Keyword.get(options, :headers, [])
-    middleware = [
-      {Tesla.Middleware.BaseUrl, url},
-      {Tesla.Middleware.Headers, [{"content-type", "application/json"} | headers]},
-      Tesla.Middleware.JSON
-    ]
-    Tesla.client(middleware)
-  end
+  @spec miner(String.t | atom, keyword) :: miner
+  def miner(url, options \\ []),
+    do: Manic.Miner.new(url, options)
 
 
   @doc """
-  TODO
+  Returns a [`multi miner`](`t:multi_miner/0`) client for the given list of
+  Merchant API endpoints.
+
+  Each element of the give list can contain the same credentials given to
+  `miner/2`.
+
+  ## Examplea
+
+  A [`multi miner`](`t:multi_miner/0`) client can be instantiated with a list
+  containing either a full URL, a key from the list of `known_miners/0`, or a
+  tuple pair containing any additional options.
+
+      iex> Manic.multi([
+      ...>   "https://merchantapi.taal.com",
+      ...>   :matterpool,
+      ...>   {:mempool, headers: [{"token", token}]}
+      ...> ])
+      %Manic.Multi{}
   """
-  @spec multi(list, keyword) :: Manic.Multi.t
-  def multi(urls, options \\ []) do
-    Manic.Multi.new(urls, options)
-  end
+  @spec multi(list, keyword) :: multi_miner
+  def multi(urls, options \\ []),
+    do: Manic.Multi.new(urls, options)
+
 end

@@ -14,13 +14,13 @@ defmodule Manic.TX do
   the response can be treated as a legally binding signed message backed by the
   miner's own proof of work.
   """
-  alias Manic.{JSONEnvelope, Multi}
+  alias Manic.{JSONEnvelope, Miner, Multi}
 
 
   @typedoc "Hex-encoded transaction ID."
   @type txid :: String.t
 
-  
+
   @doc """
   Sends the given [`transaction`](`t:BSV.Transaction.t/0`) directly to a [`miner`](`t:Manic.miner/0`).
 
@@ -66,21 +66,21 @@ defmodule Manic.TX do
       }}
 
   """
-  @spec push(Manic.miner | Multi.t, BSV.Transaction.t | String.t, keyword) ::
+  @spec push(Manic.miner | Manic.multi, BSV.Transaction.t | String.t, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
     {:error, Exception.t} |
     Multi.result
 
   def push(miner, tx, options \\ [])
 
-  def push(%Tesla.Client{} = miner, %BSV.Transaction{} = tx, options),
+  def push(%Miner{} = miner, %BSV.Transaction{} = tx, options),
     do: push(miner, BSV.Transaction.serialize(tx, encoding: :hex), options)
 
-  def push(%Tesla.Client{} = miner, tx, options) when is_binary(tx) do
+  def push(%Miner{} = miner, tx, options) when is_binary(tx) do
     format = Keyword.get(options, :as, :payload)
 
     with {:ok, _tx} <- validate_tx(tx),
-         {:ok, res} <- Tesla.post(miner, "/mapi/tx", %{"rawtx" => tx}),
+         {:ok, res} <- Tesla.post(miner.client, "/mapi/tx", %{"rawtx" => tx}),
          {:ok, body} <- JSONEnvelope.verify(res.body),
          {:ok, payload} <- JSONEnvelope.parse_payload(body)
     do
@@ -108,7 +108,7 @@ defmodule Manic.TX do
   @spec push!(Manic.miner, BSV.Transaction.t | String.t, keyword) ::
     JSONEnvelope.payload | JSONEnvelope.t
 
-  def push!(%Tesla.Client{} = miner, tx, options \\ []) do
+  def push!(%Miner{} = miner, tx, options \\ []) do
     case push(miner, tx, options) do
       {:ok, res} -> res
       {:error, error} -> raise error
@@ -119,7 +119,7 @@ defmodule Manic.TX do
   @doc """
   Query the status of a transaction by its [`txid`](`t:txid/0`), from the given
   [`miner`](`t:Manic.miner/0`).
-  
+
   Returns the result in an `:ok` / `:error` tuple pair.
 
   ## Options
@@ -157,20 +157,20 @@ defmodule Manic.TX do
         public_key: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
         signature: "304502210092b822497cfe065136522b33b0fbec790c77f62818bd252583a615efd35697af022059c4ca7e97c90960860ed9d7b0ff4a1601cfe207b638c672c60a44027aed1f2d"
       }}
-  
+
   """
-  @spec status(Manic.miner | Multi.t, TX.txid, keyword) ::
+  @spec status(Manic.miner | Manic.multi, TX.txid, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
     {:error, Exception.t} |
     Multi.result
 
   def status(miner, txid, options \\ [])
 
-  def status(%Tesla.Client{} = miner, txid, options) when is_binary(txid) do
+  def status(%Miner{} = miner, txid, options) when is_binary(txid) do
     format = Keyword.get(options, :as, :payload)
 
     with {:ok, txid} <- validate_txid(txid),
-         {:ok, res} <- Tesla.get(miner, "/mapi/tx/" <> txid),
+         {:ok, res} <- Tesla.get(miner.client, "/mapi/tx/" <> txid),
          {:ok, body} <- JSONEnvelope.verify(res.body),
          {:ok, payload} <- JSONEnvelope.parse_payload(body)
     do
@@ -198,7 +198,7 @@ defmodule Manic.TX do
   @spec status!(Manic.miner, String.t, keyword) ::
     JSONEnvelope.payload | JSONEnvelope.t
 
-  def status!(%Tesla.Client{} = miner, txid, options \\ []) do
+  def status!(%Miner{} = miner, txid, options \\ []) do
     case status(miner, txid, options) do
       {:ok, res} -> res
       {:error, error} -> raise error
@@ -224,5 +224,5 @@ defmodule Manic.TX do
       false -> {:error, "Not valid TXID"}
     end
   end
-  
+
 end

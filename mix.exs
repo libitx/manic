@@ -12,7 +12,14 @@ defmodule Manic.MixProject do
       description: "Manic is an Elixir client for interfacing with Bitcoin miner APIs.",
       source_url: "https://github.com/libitx/manic",
       docs: [
-        main: "Manic"
+        main: "Manic",
+        groups_for_modules: [
+          "Internal": [
+            Manic.JSONEnvelope,
+            Manic.Miner,
+            Manic.Multi
+          ]
+        ]
       ],
       package: [
         name: "manic",
