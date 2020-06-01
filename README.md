@@ -113,6 +113,69 @@ iex> Manic.TX.status(miner, "e4763d71925c2ac11a4de0b971164b099dbdb67221f03756fc7
 }}
 ```
 
+## Multi miners
+
+In the examples above, each API function is invoked by passing a single miner client. Manic also provides a way of interacting with multiple miner clients concurrently, and yielding the response from any or all of the miners.
+
+### 1. Initalize a multi-miner client
+
+Initialize a multi miner client with a list of miner Merchant API endpoint details. The list can contain either a full URL, a key from the list of known miners, or a tuple pair containing any additional options.
+
+```elixir
+iex> Manic.multi([
+...>   "https://merchantapi.taal.com",
+...>   :matterpool,
+...>   {:mempool, headers: [{"token", token}]}
+...> ])
+%Manic.Multi{}
+```
+
+### 2. Push a tx an any miner
+
+By default, multi miner requests will yield until **any** of the miners responds. This is allows a transaction to be pushed to multiple miners concurrently, and return a response when the first response is recieved.
+
+```elixir
+iex> Manic.multi(miners)
+...> |> Manic.TX.push(tx)
+{^miner, {:ok, %{
+  "api_version" => "0.1.0",
+  "current_highest_block_hash" => "00000000000000000397a5a37c1f9b409b4b58e76fd6bcac06db1a3004cccb38",
+  "current_highest_block_height" => 631603,
+  "miner_id" => "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
+  "result_description" => "",
+  "return_result" => "success",
+  "timestamp" => "2020-04-21T14:04:39.563Z",
+  "tx_second_mempool_expiry" => 0,
+  "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
+}}}
+```
+
+### 3. Query all miners concurrently
+
+Alternatively, a multi miner client can be initialized with the option `yield: :all` which awaits **all** miner clients to respond before returning the list of responses. This allows us to compare fees from multiple miners concurrently.
+
+```elixir
+iex> Manic.multi(miners, yield: :all)
+...> |> Manic.Fees.get
+[
+  {^miner, {:ok, %{
+    expires: ~U[2020-04-20 16:35:03.168Z],
+    mine: %{data: 0.5, standard: 0.5},
+    relay: %{data: 0.25, standard: 0.25}
+  }}},
+  {^miner, {:ok, %{
+    expires: ~U[2020-04-20 16:35:03.168Z],
+    mine: %{data: 0.5, standard: 0.5},
+    relay: %{data: 0.25, standard: 0.25}
+  }}},
+  {^miner, {:ok, %{
+    expires: ~U[2020-04-20 16:35:03.168Z],
+    mine: %{data: 0.5, standard: 0.5},
+    relay: %{data: 0.25, standard: 0.25}
+  }}}
+]
+```
+
 For more examples, refer to the [full documentation](https://hexdocs.pm/manic).
 
 ## License
