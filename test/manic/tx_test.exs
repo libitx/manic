@@ -8,7 +8,7 @@ defmodule Manic.TXTest do
       tx_ok: "0100000001408d1dbeb63b3c917f8b1a9ac514b917e4b151aa5b4db615cda5dca4455e3095000000006a473044022050b1774cc81a83a7a1ac94a3356fdae8ed6d5c6dfa101fb1caab98f649c677b10220033b4f1ec51810753577ebbecb220c84ff104cae4a690cf44964125eb2c9fc0c4121032cebae50214f26b45d356a3d9d70324cb593affd1c13065f4d2f0110ad5e2661ffffffff0200000000000000000f006a0c48656c6c6f20776f726c642184190000000000001976a91451d0b8a2ffb9fa78ecd898f54d657d3096174e7088ac00000000",
       tx_bad: "01000000000100000000000000000f006a0c48656c6c6f20776f726c642100000000"
 
-    }  
+    }
   end
 
 
@@ -49,6 +49,23 @@ defmodule Manic.TXTest do
     test "should return error when given invalid tx", ctx do
       {:error, error} = TX.push(ctx.miner, "aabbeecc")
       assert error == "Not valid transaction"
+    end
+  end
+
+
+  describe "Manic.TX.push/3 with multi miner" do
+    setup do
+      Tesla.Mock.mock_global fn _env ->
+        File.read!("test/mocks/tx_push-success.json") |> Jason.decode! |> Tesla.Mock.json
+      end
+      %{
+        multi: Manic.multi([:taal, :matterpool], yield: :any)
+      }
+    end
+
+    test "should return first miner response", ctx do
+      res = TX.push(ctx.multi, ctx.tx_ok)
+      assert {%Manic.Miner{url: :taal}, {:ok, _res}} = res
     end
   end
 

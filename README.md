@@ -4,6 +4,7 @@
 
 ![Hex.pm](https://img.shields.io/hexpm/v/manic?color=informational)
 ![GitHub](https://img.shields.io/github/license/libitx/manic?color=informational)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/libitx/manic/Elixir%20CI)
 
 Manic is an Elixir client for interfacing with Bitcoin miner APIs.
 
