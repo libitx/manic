@@ -11,7 +11,7 @@ defmodule Manic.Fees do
   This module allows developers to query miners directly for up to date fee rates,
   plus calculate accurate fees for any given transaction.
   """
-  alias Manic.JSONEnvelope
+  alias Manic.{JSONEnvelope, Multi}
 
 
   @typedoc """
@@ -84,11 +84,14 @@ defmodule Manic.Fees do
         signature: "304402206fc2744bc3626e5becbc3a708760917c6f78f83a61fd557b238c613862929412022047d22f89bd6fe98ca50e819452db81318641f74544252b1f04536cc689cf5f55"
       }}
   """
-  @spec get(Manic.miner, keyword) ::
+  @spec get(Manic.miner | Multi.t, keyword) ::
     {:ok, fee_quote | JSONEnvelope.payload | JSONEnvelope.t} |
-    {:error, Exception.t}
+    {:error, Exception.t} |
+    Multi.result
 
-  def get(%Tesla.Client{} = miner, options \\ []) do
+  def get(miner, options \\ [])
+
+  def get(%Tesla.Client{} = miner, options) do
     format = Keyword.get(options, :as, :fees)
 
     with {:ok, res} <- Tesla.get(miner, "/mapi/feeQuote"),
@@ -106,6 +109,12 @@ defmodule Manic.Fees do
       {:error, err} ->
         {:error, err}
     end
+  end
+
+  def get(%Multi{} = multi, options) do
+    multi
+    |> Multi.async(__MODULE__, :get, [options])
+    |> Multi.yield
   end
 
 

@@ -14,7 +14,7 @@ defmodule Manic.TX do
   the response can be treated as a legally binding signed message backed by the
   miner's own proof of work.
   """
-  alias Manic.JSONEnvelope
+  alias Manic.{JSONEnvelope, Multi}
 
 
   @typedoc "Hex-encoded transaction ID."
@@ -66,9 +66,10 @@ defmodule Manic.TX do
       }}
 
   """
-  @spec push(Manic.miner, BSV.Transaction.t | String.t, keyword) ::
+  @spec push(Manic.miner | Multi.t, BSV.Transaction.t | String.t, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
-    {:error, Exception.t}
+    {:error, Exception.t} |
+    Multi.result
 
   def push(miner, tx, options \\ [])
 
@@ -92,6 +93,12 @@ defmodule Manic.TX do
       {:error, err} ->
         {:error, err}
     end
+  end
+
+  def push(%Multi{} = multi, tx, options) do
+    multi
+    |> Multi.async(__MODULE__, :push, [tx, options])
+    |> Multi.yield
   end
 
 
@@ -152,11 +159,14 @@ defmodule Manic.TX do
       }}
   
   """
-  @spec status(Manic.miner, String.t, keyword) ::
+  @spec status(Manic.miner | Multi.t, TX.txid, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
-    {:error, Exception.t}
+    {:error, Exception.t} |
+    Multi.result
 
-  def status(%Tesla.Client{} = miner, txid, options \\ []) when is_binary(txid) do
+  def status(miner, txid, options \\ [])
+
+  def status(%Tesla.Client{} = miner, txid, options) when is_binary(txid) do
     format = Keyword.get(options, :as, :payload)
 
     with {:ok, txid} <- validate_txid(txid),
@@ -173,6 +183,12 @@ defmodule Manic.TX do
       {:error, err} ->
         {:error, err}
     end
+  end
+
+  def status(%Multi{} = multi, txid, options) do
+    multi
+    |> Multi.async(__MODULE__, :status, [txid, options])
+    |> Multi.yield
   end
 
 

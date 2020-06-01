@@ -175,4 +175,13 @@ defmodule Manic do
     ]
     Tesla.client(middleware)
   end
+
+
+  @doc """
+  TODO
+  """
+  @spec multi(list, keyword) :: Manic.Multi.t
+  def multi(urls, options \\ []) do
+    Manic.Multi.new(urls, options)
+  end
 end
