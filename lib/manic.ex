@@ -238,7 +238,14 @@ defmodule Manic do
   Each element of the give list can contain the same credentials given to
   `miner/2`.
 
-  ## Examplea
+  ## Options
+
+  The accepted options are:
+
+  * `:yield` - Set to `:all` to await and return all responses. Defaults to `:any` which awaits and returns the first response.
+  * `:timeout` - Set a timeout for the reqeusts. Defaults to `5000`. Set to `:infinity` to disable timeout.
+
+  ## Examples
 
   A [`multi miner`](`t:multi_miner/0`) client can be instantiated with a list
   containing either a full URL, a key from the list of `known_miners/0`, or a

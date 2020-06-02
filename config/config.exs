@@ -6,7 +6,7 @@ case Mix.env do
     config :tesla, adapter: Tesla.Mock
   _ ->
     config :tesla, adapter: {Tesla.Adapter.Mint, [
-      timeout: 30_000,
+      timeout: :infinity,
       protocols: [:http1]
     ]}
 end

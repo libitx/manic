@@ -7,7 +7,8 @@ defmodule Manic.Multi do
 
   defstruct miners: [],
             operation: nil,
-            yield: :any
+            yield: :any,
+            timeout: 5_000
 
 
   @typedoc "Bitcoin multi miner API client"
@@ -85,10 +86,8 @@ defmodule Manic.Multi do
   respond. Alternatively, a multi client can be initialized with the option
   `yield: :all` which awaits for **all** miner clients to respond.
   """
-  @spec yield(__MODULE__.t, integer | :infinity) :: result
-  def yield(multi, timeout \\ 5000)
-
-  def yield(%__MODULE__{yield: :any} = multi, timeout) do
+  @spec yield(__MODULE__.t) :: result
+  def yield(%__MODULE__{yield: :any, timeout: timeout} = multi) do
     parent = self()
 
     spawn_link(fn ->
@@ -108,7 +107,7 @@ defmodule Manic.Multi do
     end
   end
 
-  def yield(%__MODULE__{yield: :all} = multi, timeout) do
+  def yield(%__MODULE__{yield: :all, timeout: timeout} = multi) do
     keyed_tasks = multi.miners
     |> Enum.map(& init_task(&1, multi.operation))
 
