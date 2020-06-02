@@ -33,7 +33,7 @@ in `mix.exs`.
 ```elixir
 def deps do
   [
-    {:manic, "~> 0.0.2"}
+    {:manic, "~> 0.0.3"}
   ]
 end
 ```
