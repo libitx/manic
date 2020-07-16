@@ -4,7 +4,7 @@ defmodule Manic.MixProject do
   def project do
     [
       app: :manic,
-      version: "0.0.3",
+      version: "0.0.4",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
