@@ -31,6 +31,7 @@ defmodule Manic.TXTest do
       assert res["miner_id"] == "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270"
       assert res["return_result"] == "success"
       #assert res["txid"] == "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
+      assert res["verified"] == true
     end
 
     test "should return the parsed payload for failed tx", ctx do
@@ -116,6 +117,7 @@ defmodule Manic.TXTest do
       assert res["block_hash"] == "000000000000000000983dee680071d63939f4690a8a797c022eddadc88f925e"
       assert res["block_height"] == 630712
       assert res["confirmations"] > 0
+      assert res["verified"] == true
     end
 
     test "should return the parsed payload for mempool tx", ctx do
@@ -142,6 +144,21 @@ defmodule Manic.TXTest do
     test "should return error when given invalid txid", ctx do
       {:error, error} = TX.status(ctx.miner, "aabbeecc")
       assert error == "Not valid TXID"
+    end
+  end
+
+
+  describe "Manic.TX.status/3 with invalid signature" do
+    setup do
+      Tesla.Mock.mock fn _env ->
+        File.read!("test/mocks/tx_status-confirmed-nosig.json") |> Jason.decode! |> Tesla.Mock.json
+      end
+      :ok
+    end
+
+    test "should return the parsed payload", ctx do
+      {:ok, res} = TX.status(ctx.miner, "e4763d71925c2ac11a4de0b971164b099dbdb67221f03756fc79708d53b8800e")
+      assert res["verified"] == false
     end
   end
 

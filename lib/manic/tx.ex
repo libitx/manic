@@ -51,7 +51,8 @@ defmodule Manic.TX do
         "return_result" => "success",
         "timestamp" => "2020-04-21T14:04:39.563Z",
         "tx_second_mempool_expiry" => 0,
-        "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
+        "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa",
+        "verified" => true
       }}
 
   Using the `:as` option to return the [`JSON envolope`](`t:Manic.JSONEnvelope.t/0`).
@@ -62,7 +63,8 @@ defmodule Manic.TX do
         mimetype: "application/json",
         payload: "{\\"apiVersion\\":\\"0.1.0\\",\\"timestamp\\":\\"2020-04-21T14:04:39.563Z\\",\\"txid\\":\\"\\"9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa\\"\\",\\"returnResult\\":\\"success\\",\\"resultDescription\\":\\"\\",\\"minerId\\":\\"03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270\\",\\"currentHighestBlockHash\\":\\"00000000000000000397a5a37c1f9b409b4b58e76fd6bcac06db1a3004cccb38\\",\\"currentHighestBlockHeight\\":631603,\\"txSecondMempoolExpiry\\":0}",
         public_key: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
-        signature: "3045022100a490e469426f34fcf62d0f095c10039cf5a1d535c042172786c364d41de65b3a0220654273ca42b5e955179d617ea8252e64ddf74657aa0caebda7372b40a0f07a53"
+        signature: "3045022100a490e469426f34fcf62d0f095c10039cf5a1d535c042172786c364d41de65b3a0220654273ca42b5e955179d617ea8252e64ddf74657aa0caebda7372b40a0f07a53",
+        verified: true
       }}
 
   """
@@ -144,7 +146,8 @@ defmodule Manic.TX do
         "result_description" => "",
         "return_result" => "success",
         "timestamp" => "2020-04-20T21:45:38.808Z",
-        "tx_second_mempool_expiry" => 0
+        "tx_second_mempool_expiry" => 0,
+        "verified" => true
       }}
 
   Using the `:as` option to return the [`JSON envolope`](`t:Manic.JSONEnvelope.t/0`).
@@ -155,7 +158,8 @@ defmodule Manic.TX do
         mimetype: "application/json",
         payload: "{\\"apiVersion\\":\\"0.1.0\\",\\"timestamp\\":\\"2020-04-20T21:45:38.808Z\\",\\"returnResult\\":\\"success\\",\\"resultDescription\\":\\"\\",\\"blockHash\\":\\"000000000000000000983dee680071d63939f4690a8a797c022eddadc88f925e\\",\\"blockHeight\\":630712,\\"confirmations\\":765,\\"minerId\\":\\"03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270\\",\\"txSecondMempoolExpiry\\":0}",
         public_key: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
-        signature: "304502210092b822497cfe065136522b33b0fbec790c77f62818bd252583a615efd35697af022059c4ca7e97c90960860ed9d7b0ff4a1601cfe207b638c672c60a44027aed1f2d"
+        signature: "304502210092b822497cfe065136522b33b0fbec790c77f62818bd252583a615efd35697af022059c4ca7e97c90960860ed9d7b0ff4a1601cfe207b638c672c60a44027aed1f2d",
+        verified: true
       }}
 
   """

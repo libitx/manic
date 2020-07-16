@@ -11,7 +11,12 @@ defmodule Manic.JSONEnvelope do
   """
 
   # JSONEnvelope
-  defstruct [:payload, :signature, :public_key, :encoding, :mimetype]
+  defstruct payload: nil,
+            signature: nil,
+            public_key: nil,
+            encoding: nil,
+            mimetype: nil,
+            verified: false
 
 
   @typedoc """
@@ -25,7 +30,8 @@ defmodule Manic.JSONEnvelope do
     signature: String.t,
     public_key: String.t,
     encoding: String.t,
-    mimetype: String.t
+    mimetype: String.t,
+    verified: boolean
   }
 
 
@@ -116,11 +122,8 @@ defmodule Manic.JSONEnvelope do
   Verifies the given [`JSON Envelope`](`t:t/0`), by cryptographically verifying
   the envelopes signature against the payload, using the public key in the envelope.
 
-  Returns the [`JSON Envelope`](`t:t/0`) in an `:ok` tuple, or returns an `:error`
-  tuple with an exception or error message.
-
-  If the envelop contains no signature and public key, then no attempt at
-  verification is made and the envelope is returned ok.
+  Adds the boolean result to the `:verified` key, and returns the
+  [`JSON Envelope`](`t:t/0`) in an `:ok` tuple.
   """
   @spec verify(__MODULE__.t | map) ::
     {:ok, __MODULE__.t} |
@@ -128,21 +131,18 @@ defmodule Manic.JSONEnvelope do
 
   def verify(%__MODULE__{public_key: public_key, signature: signature} = env)
     when (is_nil(public_key) or public_key == "")
-    and (is_nil(signature) or signature == ""),
+    or (is_nil(signature) or signature == ""),
     do: {:ok, env}
 
   def verify(%__MODULE__{} = env) do
-    with {:ok, pubkey} <- Base.decode16(env.public_key, case: :mixed),
-         true <- BSV.Crypto.ECDSA.verify(env.signature, env.payload, pubkey, encoding: :hex)
-    do
-      {:ok, env}
+    with {:ok, pubkey} <- Base.decode16(env.public_key, case: :mixed) do
+      case BSV.Crypto.ECDSA.verify(env.signature, env.payload, pubkey, encoding: :hex) do
+        true -> {:ok, Map.put(env, :verified, true)}
+        _ -> {:ok, env}
+      end
     else
-      {:error, error} ->
-        {:error, error}
       :error ->
-        {:error, "Payload signature verification failed."}
-      false ->
-        {:error, "Payload signature verification failed."}
+        {:error, "Error decoding public key"}
     end
   end
 
@@ -163,7 +163,9 @@ defmodule Manic.JSONEnvelope do
   def parse_payload(%__MODULE__{mimetype: _} = env) do
     case Jason.decode(env.payload) do
       {:ok, map} ->
-        payload = Recase.Enumerable.convert_keys(map, &Recase.to_snake/1)
+        payload = map
+        |> Recase.Enumerable.convert_keys(&Recase.to_snake/1)
+        |> Map.put("verified", env.verified)
         {:ok, payload}
 
       {:error, error} ->

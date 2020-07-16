@@ -23,7 +23,8 @@ defmodule Manic.FeesTest do
       assert res == %{
         expires: ~U[2020-04-20 16:35:03.168Z],
         mine: %{data: 0.5, standard: 0.5},
-        relay: %{data: 0.25, standard: 0.25}
+        relay: %{data: 0.25, standard: 0.25},
+        verified: true
       }
     end
 
@@ -36,6 +37,21 @@ defmodule Manic.FeesTest do
     test "should return the JSON envelope", ctx do
       {:ok, res} = Fees.get(ctx.miner, as: :envelope)
       assert res.__struct__ == Manic.JSONEnvelope
+    end
+  end
+
+
+  describe "Manic.Fees.get/2 with invalid signature" do
+    setup do
+      Tesla.Mock.mock fn _env ->
+        File.read!("test/mocks/fee_quote_nosig.json") |> Jason.decode! |> Tesla.Mock.json
+      end
+      :ok
+    end
+
+    test "should return a fee quote with verified false", ctx do
+      {:ok, res} = Fees.get(ctx.miner)
+      assert res[:verified] == false
     end
   end
 
@@ -72,7 +88,8 @@ defmodule Manic.FeesTest do
       assert res == %{
         expires: ~U[2020-04-20 16:35:03.168Z],
         mine: %{data: 0.5, standard: 0.5},
-        relay: %{data: 0.25, standard: 0.25}
+        relay: %{data: 0.25, standard: 0.25},
+        verified: true
       }
     end
   end

@@ -70,7 +70,8 @@ defmodule Manic.Fees do
       iex> Manic.Fees.get(miner)
       {:ok, %{
         mine: %{data: 0.5, standard: 0.5},
-        relay: %{data: 0.25, standard: 0.25}
+        relay: %{data: 0.25, standard: 0.25},
+        verified: true
       }}
 
   Using the `:as` option to return the [`JSON envolope`](`t:Manic.JSONEnvelope.t/0`).
@@ -81,7 +82,8 @@ defmodule Manic.Fees do
         mimetype: "application/json",
         payload: "{\\"apiVersion\\":\\"0.1.0\\",\\"timestamp\\":\\"2020-04-20T14:10:15.079Z\\",\\"expiryTime\\":\\"2020-04-20T14:20:15.079Z\\",\\"minerId\\":\\"03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270\\",\\"currentHighestBlockHash\\":\\"00000000000000000020900d959b83325068f28ff635cb541888ef16ec8ebaf7\\",\\"currentHighestBlockHeight\\":631451,\\"minerReputation\\":null,\\"fees\\":[{\\"feeType\\":\\"standard\\",\\"miningFee\\":{\\"satoshis\\":5,\\"bytes\\":10},\\"relayFee\\":{\\"satoshis\\":25,\\"bytes\\":100}},{\\"feeType\\":\\"data\\",\\"miningFee\\":{\\"satoshis\\":5,\\"bytes\\":10},\\"relayFee\\":{\\"satoshis\\":25,\\"bytes\\":100}}]}",
         public_key: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
-        signature: "304402206fc2744bc3626e5becbc3a708760917c6f78f83a61fd557b238c613862929412022047d22f89bd6fe98ca50e819452db81318641f74544252b1f04536cc689cf5f55"
+        signature: "304402206fc2744bc3626e5becbc3a708760917c6f78f83a61fd557b238c613862929412022047d22f89bd6fe98ca50e819452db81318641f74544252b1f04536cc689cf5f55",
+        verified: true
       }}
   """
   @spec get(Manic.miner | Manic.multi, keyword) ::
@@ -133,11 +135,11 @@ defmodule Manic.Fees do
 
 
   # Builds the simplified `t:fee_quote/0` map from the given payload.
-  defp build_fee_quote(%{"expiry_time" => expires, "fees" => fees})
+  defp build_fee_quote(%{"expiry_time" => expires, "fees" => fees, "verified" => verified})
     when is_list(fees)
   do
     {:ok, expires, _} = DateTime.from_iso8601(expires)
-    fees = Enum.reduce(fees, %{expires: expires, mine: %{}, relay: %{}}, fn f, fees ->
+    fees = Enum.reduce(fees, %{expires: expires, mine: %{}, relay: %{}, verified: verified}, fn f, fees ->
       type = String.to_atom(f["fee_type"])
       %{"mining_fee" => m, "relay_fee" => r} = f
 

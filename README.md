@@ -18,6 +18,7 @@ Manic supports the following features:
 * Calculate the fee for any transaction
 * Push transactions directly to miners
 * Get the status of any transaction from miners
+* Automatically verifies the JSON Envelope signatures
 
 | Implemented spec | BRFC |
 | ---------------- | ---- |
@@ -67,7 +68,8 @@ iex> Manic.Fees.get(miner)
 {:ok, %{
   expires: ~U[2020-04-20 16:35:03.168Z],
   mine: %{data: 0.5, standard: 0.5},
-  relay: %{data: 0.25, standard: 0.25}
+  relay: %{data: 0.25, standard: 0.25},
+  verified: true
 }}
 ```
 
@@ -93,7 +95,8 @@ iex> Manic.TX.push(miner, tx)
   "return_result" => "success",
   "timestamp" => "2020-04-21T14:04:39.563Z",
   "tx_second_mempool_expiry" => 0,
-  "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
+  "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa",
+  "verified" => true
 }}
 ```
 
@@ -110,7 +113,8 @@ iex> Manic.TX.status(miner, "e4763d71925c2ac11a4de0b971164b099dbdb67221f03756fc7
   "result_description" => "",
   "return_result" => "success",
   "timestamp" => "2020-04-20T21:45:38.808Z",
-  "tx_second_mempool_expiry" => 0
+  "tx_second_mempool_expiry" => 0,
+  "verified" => true
 }}
 ```
 
@@ -147,7 +151,8 @@ iex> Manic.multi(miners)
   "return_result" => "success",
   "timestamp" => "2020-04-21T14:04:39.563Z",
   "tx_second_mempool_expiry" => 0,
-  "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa"
+  "txid" => "9c8c5cf37f4ad1a82891ff647b13ec968f3ccb44af2d9deaa205b03ab70a81fa",
+  "verified" => true
 }}}
 ```
 
@@ -162,17 +167,20 @@ iex> Manic.multi(miners, yield: :all)
   {^miner, {:ok, %{
     expires: ~U[2020-04-20 16:35:03.168Z],
     mine: %{data: 0.5, standard: 0.5},
-    relay: %{data: 0.25, standard: 0.25}
+    relay: %{data: 0.25, standard: 0.25},
+    verified: true
   }}},
   {^miner, {:ok, %{
     expires: ~U[2020-04-20 16:35:03.168Z],
     mine: %{data: 0.5, standard: 0.5},
-    relay: %{data: 0.25, standard: 0.25}
+    relay: %{data: 0.25, standard: 0.25},
+    verified: true
   }}},
   {^miner, {:ok, %{
     expires: ~U[2020-04-20 16:35:03.168Z],
     mine: %{data: 0.5, standard: 0.5},
-    relay: %{data: 0.25, standard: 0.25}
+    relay: %{data: 0.25, standard: 0.25},
+    verified: true
   }}}
 ]
 ```
