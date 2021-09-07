@@ -134,9 +134,9 @@ defmodule Manic.JSONEnvelope do
     or (is_nil(signature) or signature == ""),
     do: {:ok, env}
 
-  def verify(%__MODULE__{} = env) do
-    with {:ok, pubkey} <- Base.decode16(env.public_key, case: :mixed) do
-      case BSV.Crypto.ECDSA.verify(env.signature, env.payload, pubkey, encoding: :hex) do
+  def verify(%__MODULE__{payload: payload, public_key: public_key, signature: signature} = env) do
+    with {:ok, pubkey} <- Base.decode16(public_key, case: :mixed) do
+      case BSV.Crypto.ECDSA.verify(signature, payload, pubkey, encoding: :hex) do
         true -> {:ok, Map.put(env, :verified, true)}
         _ -> {:ok, env}
       end
@@ -160,8 +160,10 @@ defmodule Manic.JSONEnvelope do
   """
   # Currently can safely assume everything is JSON
   @spec parse_payload(__MODULE__.t) :: {:ok, map} | {:error, Exception.t}
-  def parse_payload(%__MODULE__{mimetype: _} = env) do
-    case Jason.decode(env.payload) do
+  def parse_payload(%__MODULE__{payload: payload} = env)
+    when is_binary(payload)
+  do
+    case Jason.decode(payload) do
       {:ok, map} ->
         payload = map
         |> Recase.Enumerable.convert_keys(&Recase.to_snake/1)
@@ -172,5 +174,8 @@ defmodule Manic.JSONEnvelope do
         {:error, error}
     end
   end
+
+  def parse_payload(%__MODULE__{payload: payload}),
+    do: {:error, "Invalid JSON payload: \"#{ payload }\""}
 
 end

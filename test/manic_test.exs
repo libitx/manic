@@ -24,7 +24,7 @@ defmodule ManicTest do
       assert %Miner{client: client} = Manic.miner :taal
       {_, _, [url]} = Enum.find(client.pre, & elem(&1, 0) == Tesla.Middleware.BaseUrl)
       assert client.__struct__ == Tesla.Client
-      assert url == "https://merchantapi.taal.com"
+      assert url == "https://mapi.taal.com"
     end
 
     test "should return a miner client with given headers" do
