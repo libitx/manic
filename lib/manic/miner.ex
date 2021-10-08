@@ -60,7 +60,7 @@ defmodule Manic.Miner do
     headers = Keyword.get(options, :headers, [])
     middleware = [
       {Tesla.Middleware.BaseUrl, url},
-      {Tesla.Middleware.Headers, headers},
+      {Tesla.Middleware.Headers, [{"content-type", "application/json"} | headers]},
       Tesla.Middleware.JSON
     ]
     Tesla.client(middleware)

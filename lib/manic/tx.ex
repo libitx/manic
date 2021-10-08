@@ -75,27 +75,14 @@ defmodule Manic.TX do
 
   def push(miner, tx, options \\ [])
 
-  def push(%Miner{} = miner, rawtx, options) when is_binary(rawtx) do
-    encoding = case String.match?(rawtx, ~r/^([a-f0-9]{2})+$/i) do
-      true -> :hex
-      false -> :binary
-    end
+  def push(%Miner{} = miner, %BSV.Transaction{} = tx, options),
+    do: push(miner, BSV.Transaction.serialize(tx, encoding: :hex), options)
 
-    try do
-      {%BSV.Transaction{} = tx, ""} = BSV.Transaction.parse(rawtx, encoding: encoding)
-      push(miner, tx, options)
-    rescue
-      _err ->
-        {:error, "Not valid transaction"}
-    end
-  end
-
-  def push(%Miner{} = miner, %BSV.Transaction{} = tx, options) do
+  def push(%Miner{} = miner, tx, options) when is_binary(tx) do
     format = Keyword.get(options, :as, :payload)
-    headers = [{"content-type", "application/octet-stream"}]
-    rawtx = BSV.Transaction.serialize(tx)
 
-    with {:ok, %{body: body, status: status}} when status in 200..202 <- Tesla.post(miner.client, "/mapi/tx", rawtx, headers: headers),
+    with {:ok, _tx} <- validate_tx(tx),
+         {:ok, %{body: body, status: status}} when status in 200..202 <- Tesla.post(miner.client, "/mapi/tx", %{"rawtx" => tx}),
          {:ok, body} <- JSONEnvelope.verify(body),
          {:ok, payload} <- JSONEnvelope.parse_payload(body)
     do
@@ -187,10 +174,9 @@ defmodule Manic.TX do
 
   def status(%Miner{} = miner, txid, options) when is_binary(txid) do
     format = Keyword.get(options, :as, :payload)
-    headers = [{"content-type", "application/json"}]
 
     with {:ok, txid} <- validate_txid(txid),
-         {:ok, %{body: body, status: status}} when status in 200..202 <- Tesla.get(miner.client, "/mapi/tx/" <> txid, headers: headers),
+         {:ok, %{body: body, status: status}} when status in 200..202 <- Tesla.get(miner.client, "/mapi/tx/" <> txid),
          {:ok, body} <- JSONEnvelope.verify(body),
          {:ok, payload} <- JSONEnvelope.parse_payload(body)
     do
@@ -224,6 +210,17 @@ defmodule Manic.TX do
     case status(miner, txid, options) do
       {:ok, res} -> res
       {:error, error} -> raise error
+    end
+  end
+
+
+  # Validates the given transaction binary by attempting to parse it.
+  defp validate_tx(tx) when is_binary(tx) do
+    try do
+      {%BSV.Transaction{} = tx, ""} = BSV.Transaction.parse(tx, encoding: :hex)
+      {:ok, tx}
+    rescue
+      _err -> {:error, "Not valid transaction"}
     end
   end
 

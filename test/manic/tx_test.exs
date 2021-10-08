@@ -16,9 +16,9 @@ defmodule Manic.TXTest do
     setup ctx do
       Tesla.Mock.mock fn env ->
         cond do
-          env.body == Base.decode16!(ctx.tx_ok, case: :lower) ->
+          String.match?(env.body, Regex.compile!("\"#{ ctx.tx_ok }\"")) ->
             File.read!("test/mocks/tx_push-success.json") |> Jason.decode! |> Tesla.Mock.json
-          env.body == Base.decode16!(ctx.tx_bad, case: :lower) ->
+          String.match?(env.body, Regex.compile!("\"#{ ctx.tx_bad }\"")) ->
             File.read!("test/mocks/tx_push-failure.json") |> Jason.decode! |> Tesla.Mock.json
         end
       end

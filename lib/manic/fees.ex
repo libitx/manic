@@ -95,9 +95,8 @@ defmodule Manic.Fees do
 
   def get(%Miner{} = miner, options) do
     format = Keyword.get(options, :as, :fees)
-    headers = [{"content-type", "application/json"}]
 
-    with {:ok, %{body: body, status: status}} when status in 200..202 <- Tesla.get(miner.client, "/mapi/feeQuote", headers: headers),
+    with {:ok, %{body: body, status: status}} when status in 200..202 <- Tesla.get(miner.client, "/mapi/feeQuote"),
          {:ok, body} <- JSONEnvelope.verify(body),
          {:ok, payload} <- JSONEnvelope.parse_payload(body),
          {:ok, fees} <- build_fee_quote(payload)
