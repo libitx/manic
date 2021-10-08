@@ -71,7 +71,7 @@ defmodule Manic do
       }}
 
   The fee for a transaction can be calculated using the given rates. Manic will
-  accept hex encoded transaction or a `t:BSV.Transaction.t/0`.
+  accept hex encoded transaction or a `t:BSV.Tx.t/0`.
 
       iex> Manic.Fees.calculate(rates.mine, tx)
       {:ok, 346}
@@ -79,7 +79,7 @@ defmodule Manic do
   ### 3. Push and query transactions
 
   Manic can be used to push transactions directly to the miner. Hex encoded
-  transactions or `t:BSV.Transaction.t/0` structs are accepted.
+  transactions or `t:BSV.Tx.t/0` structs are accepted.
 
       iex> Manic.TX.push(miner, tx)
       {:ok, %{

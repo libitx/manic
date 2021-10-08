@@ -154,7 +154,7 @@ defmodule Manic.Fees do
 
 
   @doc """
-  Calculates the fee of the given [`transaction`](`t:BSV.Transaction.t/0`) using
+  Calculates the fee of the given [`transaction`](`t:BSV.Tx.t/0`) using
   the specified [`rates`](`t:fee_rates/0`).
 
   Returns the fee in satoshis as an `t:integer/0`.
@@ -162,56 +162,44 @@ defmodule Manic.Fees do
   If a [`miner`](`t:Manic.miner/0`) is passed as the first argument, the
   function firstly gets the [`rates`](`t:fee_rates/0`) for that miner, before
   calculating the fee for the given transaction. The transaction can be passed
-  as either a `t:BSV.Transaction.t/0` or as a hex encoded binary.
+  as either a `t:BSV.Tx.t/0` or as a hex encoded binary.
 
   ## Example
 
       iex> Manic.Fees.calculate(%{data: 0.5, standard: 0.5}, tx)
       346
   """
-  @spec calculate(fee_rates | Manic.miner, BSV.Transaction.t | String.t) ::
+  @spec calculate(Manic.miner, BSV.Tx.t | String.t) ::
     {:ok, integer} |
     {:error, Exception.t}
 
-  def calculate(rates, tx)
-
   def calculate(%Miner{} = miner, tx) do
     case get(miner) do
-      {:ok, %{mine: rates}} ->
-        calculate(rates, tx)
+      {:ok, fee_quote} ->
+        calculate(miner, tx, fee_quote)
 
       {:error, error} ->
         {:error, error}
     end
   end
 
-  def calculate(%{} = rates, tx) when is_binary(tx) do
+  @spec calculate(Manic.miner, BSV.Tx.t | String.t, fee_quote) ::
+    {:ok, integer} |
+    {:error, Exception.t}
+
+  def calculate(miner, tx, fee_quote) when is_binary(tx) do
     case validate_tx(tx) do
       {:ok, tx} ->
-        calculate(rates, tx)
+        calculate(miner, tx, fee_quote)
 
       {:error, error} ->
         {:error, error}
     end
   end
 
-  def calculate(%{} = rates, %BSV.Transaction{} = tx) do
+  def calculate(_miner, %BSV.Tx{} = tx, fee_quote) do
     try do
-      parts = [
-        {:standard, 4}, # version
-        {:standard, 4}, # locktime
-        {:standard, length(tx.inputs) |> BSV.Util.VarBin.serialize_int |> byte_size},
-        {:standard, length(tx.outputs) |> BSV.Util.VarBin.serialize_int |> byte_size}
-      ]
-      |> Kernel.++(Enum.map(tx.inputs, &calc_script_size/1))
-      |> Kernel.++(Enum.map(tx.outputs, &calc_script_size/1))
-
-      fee = parts
-      |> Enum.map(& rates[elem(&1, 0)] * elem(&1, 1))
-      |> Enum.sum
-      |> Kernel.trunc
-
-      {:ok, fee}
+      {:ok, BSV.Tx.calc_required_fee(tx, fee_quote)}
     rescue error ->
       {:error, error}
     end
@@ -221,11 +209,19 @@ defmodule Manic.Fees do
   @doc """
   As `calculate/2` but returns the result or raises an exception if it fails.
   """
-  @spec calculate!(fee_rates | Manic.miner, BSV.Transaction.t | String.t) ::
-    integer
+  @spec calculate!(Manic.miner, BSV.Tx.t | String.t) :: integer
 
-  def calculate!(rates, tx) do
-    case calculate(rates, tx) do
+  def calculate!(miner, tx) do
+    case calculate(miner, tx) do
+      {:ok, fee} -> fee
+      {:error, error} -> raise error
+    end
+  end
+
+  @spec calculate!(Manic.miner, BSV.Tx.t | String.t, fee_quote) :: integer
+
+  def calculate!(miner, tx, fee_quote) do
+    case calculate(miner, tx, fee_quote) do
       {:ok, fee} -> fee
       {:error, error} -> raise error
     end
@@ -235,28 +231,10 @@ defmodule Manic.Fees do
   # Validates the given transaction binary by attempting to parse it.
   defp validate_tx(tx) when is_binary(tx) do
     try do
-      {%BSV.Transaction{} = tx, ""} = BSV.Transaction.parse(tx, encoding: :hex)
-      {:ok, tx}
+      {:ok, BSV.Tx.from_binary!(tx, encoding: :hex)}
     rescue
       _err -> {:error, "Not valid transaction"}
     end
   end
 
-
-  # Calculates the given input or output size and returns a tuple pair where the
-  # first element is the `t:fee_type/0`.
-  defp calc_script_size(%BSV.Transaction.Input{} = input),
-    do: {:standard, BSV.Transaction.Input.get_size(input)}
-
-  defp calc_script_size(%BSV.Transaction.Output{script: nil} = output),
-    do: {:standard, BSV.Transaction.Output.get_size(output)}
-
-  defp calc_script_size(%BSV.Transaction.Output{script: script} = output) do
-    case script.chunks do
-      [:OP_FALSE, :OP_RETURN | _chunks] ->
-        {:data, BSV.Transaction.Output.get_size(output)}
-      _ ->
-        {:standard, BSV.Transaction.Output.get_size(output)}
-    end
-  end
 end

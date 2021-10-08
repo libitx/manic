@@ -14,8 +14,10 @@ defmodule Manic.Miner do
 
   # Hard coded list of known miners
   @miners %{
+    gorillapool: "https://merchantapi.gorillapool.io",
     matterpool: "https://merchantapi.matterpool.io",
-    mempool: "https://www.ddpurse.com/openapi",
+    mempool_cn: "https://www.ddpurse.com/openapi",
+    mempool_eu: "https://euapi.ddpurse.com/v1/mapi",
     taal: "https://mapi.taal.com"
   }
 

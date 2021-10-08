@@ -7,7 +7,7 @@ defmodule ManicTest do
       miners = Manic.known_miners
       assert is_map(miners)
       assert Map.keys(miners) |> Enum.member?(:taal)
-      assert Map.keys(miners) |> Enum.member?(:mempool)
+      assert Map.keys(miners) |> Enum.member?(:mempool_cn)
     end
   end
 
@@ -28,7 +28,7 @@ defmodule ManicTest do
     end
 
     test "should return a miner client with given headers" do
-      assert %Miner{client: client} = Manic.miner :mempool, headers: [{"token", "abcdefg"}]
+      assert %Miner{client: client} = Manic.miner :mempool_cn, headers: [{"token", "abcdefg"}]
       {_, _, [url]} = Enum.find(client.pre, & elem(&1, 0) == Tesla.Middleware.BaseUrl)
       {_, _, [headers]} = Enum.find(client.pre, & elem(&1, 0) == Tesla.Middleware.Headers)
       assert client.__struct__ == Tesla.Client

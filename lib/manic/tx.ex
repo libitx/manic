@@ -22,11 +22,11 @@ defmodule Manic.TX do
 
 
   @doc """
-  Sends the given [`transaction`](`t:BSV.Transaction.t/0`) directly to a [`miner`](`t:Manic.miner/0`).
+  Sends the given [`transaction`](`t:BSV.Tx.t/0`) directly to a [`miner`](`t:Manic.miner/0`).
 
   Returns the result in an `:ok` / `:error` tuple pair.
 
-  The transaction can be passed as either a `t:BSV.Transaction.t/0` or as a hex
+  The transaction can be passed as either a `t:BSV.Tx.t/0` or as a hex
   encoded binary.
 
   ## Options
@@ -68,15 +68,15 @@ defmodule Manic.TX do
       }}
 
   """
-  @spec push(Manic.miner | Manic.multi, BSV.Transaction.t | String.t, keyword) ::
+  @spec push(Manic.miner | Manic.multi, BSV.Tx.t | String.t, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
     {:error, Exception.t} |
     Multi.result
 
   def push(miner, tx, options \\ [])
 
-  def push(%Miner{} = miner, %BSV.Transaction{} = tx, options),
-    do: push(miner, BSV.Transaction.serialize(tx, encoding: :hex), options)
+  def push(%Miner{} = miner, %BSV.Tx{} = tx, options),
+    do: push(miner, BSV.Tx.to_binary(tx, encoding: :hex), options)
 
   def push(%Miner{} = miner, tx, options) when is_binary(tx) do
     format = Keyword.get(options, :as, :payload)
@@ -109,7 +109,7 @@ defmodule Manic.TX do
   @doc """
   As `push/3` but returns the result or raises an exception if it fails.
   """
-  @spec push!(Manic.miner, BSV.Transaction.t | String.t, keyword) ::
+  @spec push!(Manic.miner, BSV.Tx.t | String.t, keyword) ::
     JSONEnvelope.payload | JSONEnvelope.t
 
   def push!(%Miner{} = miner, tx, options \\ []) do
@@ -217,8 +217,7 @@ defmodule Manic.TX do
   # Validates the given transaction binary by attempting to parse it.
   defp validate_tx(tx) when is_binary(tx) do
     try do
-      {%BSV.Transaction{} = tx, ""} = BSV.Transaction.parse(tx, encoding: :hex)
-      {:ok, tx}
+      {:ok, BSV.Tx.from_binary!(tx, encoding: :hex)}
     rescue
       _err -> {:error, "Not valid transaction"}
     end

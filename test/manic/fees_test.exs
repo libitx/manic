@@ -95,7 +95,7 @@ defmodule Manic.FeesTest do
   end
 
 
-  describe "Manic.Fees.calculate/2" do
+  describe "Manic.Fees.calculate/3" do
     setup do
       Tesla.Mock.mock fn _env ->
         File.read!("test/mocks/fee_quote.json") |> Jason.decode! |> Tesla.Mock.json
@@ -104,30 +104,30 @@ defmodule Manic.FeesTest do
     end
 
     test "should calculate the fee from the given rates", ctx do
-      assert Fees.calculate(%{data: 0.5, standard: 0.5}, ctx.tx) == {:ok, 346}
-      assert Fees.calculate(%{data: 0.25, standard: 0.25}, ctx.tx) == {:ok, 173}
-      assert Fees.calculate(%{data: 0.25, standard: 0.5}, ctx.tx) == {:ok, 229}
+      assert Fees.calculate(ctx.miner, ctx.tx, %{data: 0.5, standard: 0.5}) == {:ok, 348}
+      assert Fees.calculate(ctx.miner, ctx.tx, %{data: 0.25, standard: 0.25}) == {:ok, 176}
+      assert Fees.calculate(ctx.miner, ctx.tx, %{data: 0.25, standard: 0.5}) == {:ok, 231}
     end
 
     test "should load rates from the given miner", ctx do
-      assert Fees.calculate(ctx.miner, ctx.tx) == {:ok, 346}
+      assert Fees.calculate(ctx.miner, ctx.tx) == {:ok, 348}
     end
 
-    test "should return error when given invalid tx" do
-      {:error, error} = Fees.calculate(%{data: 0.5, standard: 0.5}, "aabbeecc")
+    test "should return error when given invalid tx", ctx do
+      {:error, error} = Fees.calculate(ctx.miner, "aabbeecc", %{data: 0.5, standard: 0.5})
       assert error == "Not valid transaction"
     end
   end
 
 
-  describe "Manic.Fees.calculate!/2" do
+  describe "Manic.Fees.calculate!/3" do
     test "should calculate the fee from the given rates", ctx do
-      assert Fees.calculate!(%{data: 0.5, standard: 0.5}, ctx.tx) == 346
+      assert Fees.calculate!(ctx.miner, ctx.tx, %{data: 0.5, standard: 0.5}) == 348
     end
 
-    test "should raise eception when given invalid tx" do
+    test "should raise eception when given invalid tx", ctx do
       assert_raise RuntimeError, "Not valid transaction", fn ->
-        Fees.calculate!(%{data: 0.5, standard: 0.5}, "aabbeecc")
+        Fees.calculate!(ctx.miner, "aabbeecc", %{data: 0.5, standard: 0.5})
       end
     end
   end

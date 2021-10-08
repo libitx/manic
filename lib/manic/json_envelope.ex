@@ -136,7 +136,7 @@ defmodule Manic.JSONEnvelope do
 
   def verify(%__MODULE__{payload: payload, public_key: public_key, signature: signature} = env) do
     with {:ok, pubkey} <- Base.decode16(public_key, case: :mixed) do
-      case BSV.Crypto.ECDSA.verify(signature, payload, pubkey, encoding: :hex) do
+      case Curvy.verify(signature, payload, pubkey, encoding: :hex) do
         true -> {:ok, Map.put(env, :verified, true)}
         _ -> {:ok, env}
       end
