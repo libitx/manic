@@ -68,7 +68,7 @@ defmodule Manic.TX do
       }}
 
   """
-  @spec push(Manic.miner | Manic.multi, BSV.Tx.t | String.t, keyword) ::
+  @spec push(Manic.miner | Manic.multi_miner, BSV.Tx.t | String.t, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
     {:error, Exception.t} |
     Multi.result
@@ -109,10 +109,10 @@ defmodule Manic.TX do
   @doc """
   As `push/3` but returns the result or raises an exception if it fails.
   """
-  @spec push!(Manic.miner, BSV.Tx.t | String.t, keyword) ::
+  @spec push!(Manic.miner | Manic.multi_miner, BSV.Tx.t | String.t, keyword) ::
     JSONEnvelope.payload | JSONEnvelope.t
 
-  def push!(%Miner{} = miner, tx, options \\ []) do
+  def push!(miner, tx, options \\ []) do
     case push(miner, tx, options) do
       {:ok, res} -> res
       {:error, error} -> raise error
@@ -165,7 +165,7 @@ defmodule Manic.TX do
       }}
 
   """
-  @spec status(Manic.miner | Manic.multi, TX.txid, keyword) ::
+  @spec status(Manic.miner | Manic.multi_miner, TX.txid, keyword) ::
     {:ok, JSONEnvelope.payload | JSONEnvelope.t} |
     {:error, Exception.t} |
     Multi.result
@@ -203,10 +203,10 @@ defmodule Manic.TX do
   @doc """
   As `status/3` but returns the result or raises an exception if it fails.
   """
-  @spec status!(Manic.miner, String.t, keyword) ::
+  @spec status!(Manic.miner | Manic.multi_miner, String.t, keyword) ::
     JSONEnvelope.payload | JSONEnvelope.t
 
-  def status!(%Miner{} = miner, txid, options \\ []) do
+  def status!(miner, txid, options \\ []) do
     case status(miner, txid, options) do
       {:ok, res} -> res
       {:error, error} -> raise error

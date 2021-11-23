@@ -86,7 +86,7 @@ defmodule Manic.Fees do
         verified: true
       }}
   """
-  @spec get(Manic.miner | Manic.multi, keyword) ::
+  @spec get(Manic.miner | Manic.multi_miner, keyword) ::
     {:ok, fee_quote | JSONEnvelope.payload | JSONEnvelope.t} |
     {:error, Exception.t} |
     Multi.result
@@ -125,10 +125,10 @@ defmodule Manic.Fees do
   @doc """
   As `get/2` but returns the result or raises an exception if it fails.
   """
-  @spec get!(Manic.miner, keyword) ::
+  @spec get!(Manic.miner | Manic.multi_miner, keyword) ::
     fee_quote | JSONEnvelope.payload | JSONEnvelope.t
 
-  def get!(%Miner{} = miner, options \\ []) do
+  def get!(miner, options \\ []) do
     case get(miner, options) do
       {:ok, fees} -> fees
       {:error, error} -> raise error
@@ -198,8 +198,19 @@ defmodule Manic.Fees do
   end
 
   def calculate(_miner, %BSV.Tx{} = tx, fee_quote) do
+    # Convert tx into txbuilder so can use the fee calc method
+    builder = %BSV.TxBuilder{
+      inputs: Enum.map(tx.inputs, fn %{outpoint: outpoint, script: script} ->
+        utxo = %BSV.UTXO{outpoint: outpoint}
+        BSV.Contract.Raw.unlock(utxo, %{script: script})
+      end),
+      outputs: Enum.map(tx.outputs, fn %{satoshis: satoshis, script: script} ->
+        BSV.Contract.Raw.lock(satoshis, %{script: script})
+      end)
+    }
+
     try do
-      {:ok, BSV.Tx.calc_required_fee(tx, fee_quote)}
+      {:ok, BSV.TxBuilder.calc_required_fee(builder, fee_quote)}
     rescue error ->
       {:error, error}
     end

@@ -4,8 +4,8 @@ defmodule Manic.MixProject do
   def project do
     [
       app: :manic,
-      version: "2.0.0-alpha.0",
-      elixir: "~> 1.10",
+      version: "0.1.0",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "Manic",
@@ -42,10 +42,10 @@ defmodule Manic.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:bsv, git: "https://github.com/libitx/bsv-ex.git", branch: "v2"},
+      {:bsv, "~> 2.0"},
       {:castore, "~> 0.1"},
-      {:curvy, "~> 0.2"},
-      {:ex_doc, "~> 0.25", only: :dev, runtime: false},
+      {:curvy, "~> 0.3"},
+      {:ex_doc, "~> 0.26", only: :dev, runtime: false},
       {:jason, "~> 1.2"},
       {:mint, "~> 1.4"},
       {:recase, "~> 0.7"},
